@@ -1,0 +1,41 @@
+channel:
+  n_frame: 500
+  n_sym: 14
+  n_fft: 64
+  cp_len: 8
+  l_h: 8
+  num_path: 4
+  channel_type: TDL
+  fading_model: jakes
+  tau_rms: 2.5
+  rician_k: 6.0
+  f_max: 10.0
+  fs: 960000.0
+  fixed_profile: true
+  normalize: true
+  seed: 2026
+
+transmission:
+  modulation: 16QAM
+  pilot_pattern: comb
+  pilot_spacing_t: 4
+  pilot_spacing_f: 4
+  pilot_power: 1.0
+
+algorithms:
+  available_estimators: [ls, mmse, lmmse]
+  available_interpolators: [linear, wiener, dft]
+  estimators: [ls, mmse, lmmse]
+  interpolators: [linear, wiener, dft]
+  corr_source: theory
+  corr_mc_frames: 1000
+  show_theory_nmse: true
+  theory_nmse_estimators: [ls, lmmse]
+
+simulation:
+  snr_db: "10:40:4"
+  run_all_combinations: false
+
+output:
+  output_dir: ./output
+  corr_dir: ./output/corr_stats

@@ -1,0 +1,23 @@
+This SISO OFDM channel-estimation simulation is organized after the code
+framework used in:
+
+../MIMOOFDMChanelEstimation
+
+The reference framework provides this module split:
+
+- config.yaml
+- main.py
+- channel.py
+- estimation.py
+- interpolation.py
+- modulation.py
+- pilot_design.py
+- visualization.py
+
+This project keeps the same style of configuration, simulation orchestration,
+algorithm modules, plotting helpers, and per-file tests, but the simulated
+system remains SISO:
+
+Y[q, k] = H[q, k] X[q, k] + W[q, k]
+
+Generated simulation artifacts are saved under ./output.

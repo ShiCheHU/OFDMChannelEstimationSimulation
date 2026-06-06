@@ -1,16 +1,19 @@
 """
-Modulation related processing.
-Support functions:
-- generate bits
-- modulate bits to constellation symbols
-- demodulate symbols to bits
-- unit tests for modulation / demodulation
+Description:
+    Digital modulation and hard-demodulation utilities for the SISO OFDM
+    simulation. The module provides normalized constellations, random bit
+    generation, bit-to-symbol mapping, nearest-neighbor demodulation, and local
+    tests.
 
-Support modulation:
-- BPSK
-- QPSK
-- 16QAM
-- 64QAM
+Args:
+    - Modulation name: BPSK, QPSK, 16QAM, or 64QAM.
+    - Bit arrays with shape (num_symbols, bits_per_symbol).
+    - Complex symbol arrays with arbitrary leading shape.
+
+Returns:
+    - Normalized constellation symbols.
+    - Random bit arrays.
+    - Hard-demodulated bit arrays.
 """
 
 from __future__ import annotations
@@ -25,10 +28,12 @@ def get_constellation(modulation: str) -> tuple[np.ndarray, np.ndarray]:
     """
     Return normalized constellation points and corresponding bit labels.
 
-    Input:
+    Args:
+    - modulation: Modulation name, one of 'BPSK', 'QPSK', '16QAM', or '64QAM'.
+
     - modulation: modulation name, support 'BPSK', 'QPSK', '16QAM', '64QAM'.
 
-    Output:
+    Returns:
     - constellation: complex-valued constellation points, shape (M,)
     - bit_labels: bit labels corresponding to each constellation point, shape (M, bits_per_symbol)
     """
@@ -94,10 +99,12 @@ def bits_per_symbol(modulation: str) -> int:
     """
     Get number of bits per symbol.
 
-    Input:
+    Args:
+    - modulation: Modulation name.
+
     - modulation: modulation name.
 
-    Output:
+    Returns:
     - bps: number of bits carried by one modulation symbol.
     """
     constellation, labels = get_constellation(modulation)
@@ -109,12 +116,16 @@ def generate_bits(num_symbols: int, modulation: str, rng: np.random.Generator | 
     """
     Generate random bit sequence for modulation.
 
-    Input:
+    Args:
+    - num_symbols: Number of modulation symbols.
+    - modulation: Modulation name.
+    - rng: Optional NumPy random generator.
+
     - num_symbols: number of modulation symbols.
     - modulation: modulation name.
     - rng: optional numpy random generator.
 
-    Output:
+    Returns:
     - bits: random bits, shape (num_symbols, bits_per_symbol)
     """
     if rng is None:
@@ -127,11 +138,14 @@ def modulate(bits: np.ndarray, modulation: str) -> np.ndarray:
     """
     Map bit sequence to constellation symbols.
 
-    Input:
+    Args:
+    - bits: Input bit array, shape (num_symbols, bits_per_symbol).
+    - modulation: Modulation name.
+
     - bits: input bit array, shape (num_symbols, bits_per_symbol)
     - modulation: modulation name.
 
-    Output:
+    Returns:
     - symbols: complex-valued modulation symbols, shape (num_symbols,)
     """
     constellation, labels = get_constellation(modulation)
@@ -151,11 +165,14 @@ def demodulate(symbols: np.ndarray, modulation: str) -> np.ndarray:
     """
     Demodulate complex symbols by nearest-neighbor detection.
 
-    Input:
+    Args:
+    - symbols: Complex-valued input symbols, shape (...,).
+    - modulation: Modulation name.
+
     - symbols: complex-valued input symbols, shape (...,)
     - modulation: modulation name.
 
-    Output:
+    Returns:
     - bits_hat: detected bits, shape (..., bits_per_symbol)
     """
     constellation, labels = get_constellation(modulation)
@@ -167,23 +184,65 @@ def demodulate(symbols: np.ndarray, modulation: str) -> np.ndarray:
     return bits_hat.reshape(out_shape)
 
 
+def test_bits_per_symbol() -> None:
+    """
+    Test bits-per-symbol lookup.
+
+    Args:
+    - None.
+
+    - None.
+
+    Returns:
+    - None.
+    """
+    assert bits_per_symbol('BPSK') == 1
+    assert bits_per_symbol('QPSK') == 2
+    assert bits_per_symbol('16QAM') == 4
+    assert bits_per_symbol('64QAM') == 6
+
+
+def test_modulation_roundtrip() -> None:
+    """
+    Test modulation and demodulation modules.
+
+    Args:
+    - None.
+
+    - None.
+
+    Returns:
+    - None. Raises AssertionError on round-trip failure.
+    """
+    rng = np.random.default_rng(0)
+    for modulation_name in ['BPSK', 'QPSK', '16QAM', '64QAM']:
+        bits = generate_bits(256, modulation_name, rng=rng)
+        symbols = modulate(bits, modulation_name)
+        bits_hat = demodulate(symbols, modulation_name)
+        ber = np.mean(bits != bits_hat)
+        assert ber == 0.0
+
+
 def test_modulation() -> None:
     """
     Test modulation and demodulation modules.
 
-    Input:
+    Args:
     - None.
 
-    Output:
+    - None.
+
+    Returns:
     - Print test results for all supported modulation schemes.
     """
+    test_bits_per_symbol()
     rng = np.random.default_rng(0)
-    for modulation in ['BPSK', 'QPSK', '16QAM', '64QAM']:
-        bits = generate_bits(256, modulation, rng=rng)
-        symbols = modulate(bits, modulation)
-        bits_hat = demodulate(symbols, modulation)
+    for modulation_name in ['BPSK', 'QPSK', '16QAM', '64QAM']:
+        bits = generate_bits(256, modulation_name, rng=rng)
+        symbols = modulate(bits, modulation_name)
+        bits_hat = demodulate(symbols, modulation_name)
         ber = np.mean(bits != bits_hat)
-        print(f"[{modulation}] test BER = {ber:.3e}")
+        print(f"[{modulation_name}] test BER = {ber:.3e}")
 
 
 if __name__ == '__main__':
