@@ -16,7 +16,7 @@ channel:
   seed: 2026
 
 transmission:
-  modulation: 16QAM
+  modulation: QPSK
   pilot_pattern: comb
   pilot_spacing_t: 4
   pilot_spacing_f: 4
